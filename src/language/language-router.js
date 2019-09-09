@@ -51,7 +51,12 @@ languageRouter
       req.app.get('db'),
       req.language.head
     )
-    const word = words[0];
+    const word = {
+      nextWord: words[0].original,
+      totalScore: words[0].total_score,
+      wordCorrectCount: words[0].correct_count,
+      wordIncorrectCount: words[0].incorrect_count
+    };
     res.json(word)
     next()
   } catch (error) {
@@ -64,9 +69,34 @@ languageRouter
     if(!req.body.guess){
       return res.status(400).json({ error: `Missing 'guess' in request body` })
     }
+    let id = req.language.head;
+    const currWord = await LanguageService.getLanguageWord(
+      req.app.get('db'),
+      id
+    )
+    const nextWord = await LanguageService.getLanguageWord(
+      req.app.get('db'),
+      id+1
+    )
+    if(req.body.guess === 'incorrect'){
+      try{
+        res.json({
+          answer: currWord[0].translation,
+          isCorrect: false,
+          nextWord: nextWord[0].original,
+          totalScore: currWord[0].total_score,
+          wordCorrectCount: currWord[0].correct_count,
+          wordIncorrectCount: currWord[0].incorrect_count
+        })
+        next()
+      } catch (error) {
+        next(error)
+      }
+    }else{
     console.log(req.body)
     // implement me
     res.send('implement me!')
+    }
   })
 
 module.exports = languageRouter

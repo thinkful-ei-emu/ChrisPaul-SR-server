@@ -32,10 +32,15 @@ const LanguageService = {
     return db
       .from('word')
       .select(
-        'word.original AS nextWord',
-        'lan.total_score AS totalScore',
-        'word.correct_count AS wordCorrectCount',
-        'word.incorrect_count AS wordIncorrectCount',
+        'word.id',
+        'word.language_id',
+        'word.original',
+        'word.translation',
+        'word.next',
+        'word.memory_value',
+        'word.correct_count',
+        'word.incorrect_count',
+        'lan.total_score'
       )
       .where( 'word.id', id )
       .leftJoin(
@@ -43,7 +48,7 @@ const LanguageService = {
         'word.language_id',
         'lan.id'
       )
-      .groupBy('word.language_id', 'lan.id', 'word.original', 'word.correct_count', 'word.incorrect_count')
+      .groupBy('word.id', 'lan.id')
   }
 }
 
