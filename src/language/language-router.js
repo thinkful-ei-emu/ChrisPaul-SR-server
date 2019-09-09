@@ -11,7 +11,7 @@ languageRouter
     try {
       const language = await LanguageService.getUsersLanguage(
         req.app.get('db'),
-        req.user.id,
+        req.user.id
       )
 
       if (!language)
@@ -69,33 +69,75 @@ languageRouter
     if(!req.body.guess){
       return res.status(400).json({ error: `Missing 'guess' in request body` })
     }
-    let id = req.language.head;
+    const words = await LanguageService.getLanguageWords(
+      req.app.get('db'),
+      req.language.id,
+    )
     const currWord = await LanguageService.getLanguageWord(
       req.app.get('db'),
-      id
+      req.language.head,
     )
     const nextWord = await LanguageService.getLanguageWord(
       req.app.get('db'),
-      id+1
+      currWord[0].next
     )
-    if(req.body.guess === 'incorrect'){
-      try{
+    const { id, memory_value, correct_count, incorrect_count } = currWord[0];
+    let newWord;
+    try{
+      if(req.body.guess === 'incorrect'){
+        newWord = { next: words[1].next, memory_value: 1, correct_count, incorrect_count: incorrect_count+1 }
+        prevWord = { next: currWord[0].id }
+        await LanguageService.updateWord(req.app.get('db'), id, newWord)
+        await LanguageService.updateWord(req.app.get('db'), words[1].id, prevWord)
+        const newLang = { head: nextWord[0].id }
+        await LanguageService.updateLang(
+          req.app.get('db'),
+          req.language.id,
+          newLang
+        )
+
         res.json({
           answer: currWord[0].translation,
           isCorrect: false,
           nextWord: nextWord[0].original,
-          totalScore: currWord[0].total_score,
-          wordCorrectCount: currWord[0].correct_count,
-          wordIncorrectCount: currWord[0].incorrect_count
+          totalScore: nextWord[0].total_score,
+          wordCorrectCount: nextWord[0].correct_count,
+          wordIncorrectCount: nextWord[0].incorrect_count
         })
-        next()
-      } catch (error) {
-        next(error)
+        
+      } else if (req.body.guess === currWord[0].translation){
+        let m;
+        if(m >= words.length){
+          m = words.length - 1;
+        } else {
+          m = memory_value*2
+        }
+        
+        newWord = { next: words[m].next, memory_value: memory_value*2, correct_count: correct_count+1, incorrect_count }
+        prevWord = { next: currWord[0].id }
+        await LanguageService.updateWord(req.app.get('db'), id, newWord)
+        await LanguageService.updateWord(req.app.get('db'), words[m].id, prevWord)
+        const newScore = { head: nextWord[0].id, total_score: req.language.total_score+1 }
+        await LanguageService.updateLang(
+          req.app.get('db'),
+          req.language.id,
+          newScore
+        )
+        res.json({
+          answer: currWord[0].translation,
+          isCorrect: true,
+          nextWord: nextWord[0].original,
+          totalScore: nextWord[0].total_score+1,
+          wordCorrectCount: nextWord[0].correct_count,
+          wordIncorrectCount: nextWord[0].incorrect_count
+        })
+      } else{
+      res.status(404).json({ error: 'The guess submitall needs to be either correct or incorrect' })
       }
-    }else{
-    console.log(req.body)
-    // implement me
-    res.send('implement me!')
+      next()
+    } 
+    catch (error) {
+      next(error)
     }
   })
 
