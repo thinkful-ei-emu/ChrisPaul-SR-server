@@ -12,6 +12,15 @@ const LanguageService = {
       .where('language.user_id', user_id)
       .first();
   },
+  addLanguage(db,user_id,name){
+    return db
+      .insert({
+        user_id,
+        name
+      })
+      .into('language')
+      .returning('*');
+  },
   getLanguageWords(db, language_id) {
     return db
       .from('word')

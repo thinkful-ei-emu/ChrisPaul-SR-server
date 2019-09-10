@@ -43,6 +43,19 @@ languageRouter
       next(error)
     }
   })
+  .post('/', jsonParser, async (req,res,next)=>{
+    try{
+      const posted=LanguageService.addLanguage(
+        req.app.get('db'),
+        req.user.id,
+        req.body.name
+      )
+      next();
+    }
+    catch(error){
+      next(error);
+    }
+  });
 
 languageRouter
   .get('/head', jsonParser, async (req, res, next) => {
