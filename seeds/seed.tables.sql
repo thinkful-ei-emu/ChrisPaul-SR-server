@@ -39,3 +39,5 @@ SELECT setval('language_id_seq', (SELECT MAX(id) from "language"));
 SELECT setval('user_id_seq', (SELECT MAX(id) from "user"));
 
 COMMIT;
+
+

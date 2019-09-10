@@ -87,9 +87,10 @@ languageRouter
     let totalScore;
     let m;
     let newLang;
+    console.log(words);
     try{
       if (req.body.guess === translation){
-        if(m >= words.length){
+        if(memory_value*2 >= words.length){
           m = words.length - 1;
         } else {
           m = memory_value*2
