@@ -45,11 +45,13 @@ languageRouter
   })
   .post('/', jsonParser, async (req,res,next)=>{
     try{
-      const posted=LanguageService.addLanguage(
+      const posted= await LanguageService.addLanguage(
         req.app.get('db'),
         req.user.id,
         req.body.name
       )
+      console.log(posted);
+      res.status(201).json(posted);
       next();
     }
     catch(error){

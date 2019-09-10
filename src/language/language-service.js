@@ -19,7 +19,8 @@ const LanguageService = {
         name
       })
       .into('language')
-      .returning('*');
+      .returning('*')
+      .then(([lang])=>lang);
   },
   getLanguageWords(db, language_id) {
     return db
