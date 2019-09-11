@@ -30,7 +30,9 @@ wordRouter
         let newHead = { head: result.id };
         await LanguageService.updateLang(req.app.get('db'), lang.id, newHead);
       }
-      await WordService.updateWord(req.app.get('db'), lastWord[0].id, newNext)
+      if(lastWord[0]){
+        await WordService.updateWord(req.app.get('db'), lastWord[0].id, newNext)
+      }
       res.json(WordService.serializeWord(result));
     }
     catch(e){
