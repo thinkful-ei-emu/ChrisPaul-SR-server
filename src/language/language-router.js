@@ -39,14 +39,13 @@ languageRouter
         req.language.id,
       )
       const allWords = {};
-      for(let i=0;i<req.languages;i++){
+
+
+      for(let i=0;i<req.languages.length;i++){
         const wordsForLang = await LanguageService.getLanguageWords(
           req.app.get('db'),
           req.languages[i].id,
         );
-        console.log('hi');
-        console.log(req.languages[i].id);
-        console.log(wordsForLang);
         allWords[req.languages[i].id]=wordsForLang;
       }
 
