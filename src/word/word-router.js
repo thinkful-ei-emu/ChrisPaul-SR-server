@@ -11,8 +11,9 @@ wordRouter
 
 wordRouter
   .post('/', jsonParser, async (req, res, next) => {
-    const { language_id, original, translation } = req.body;
+    const { language_id, original, translation } = req.body.word;
     const newWord = { language_id, original, translation };
+    console.log(original,language_id)
     const word = await WordService.getWord(
       req.app.get('db'),
       original,

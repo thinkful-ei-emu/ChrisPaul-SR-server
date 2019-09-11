@@ -68,7 +68,6 @@ languageRouter
         req.user.id,
         req.body.name
       )
-      console.log(posted);
       res.status(201).json(posted);
       next();
     }
