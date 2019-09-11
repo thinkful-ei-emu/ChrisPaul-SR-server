@@ -1,7 +1,7 @@
 const app = require('../src/app')
 const helpers = require('./test-helpers')
 
-describe.only('Language Endpoints', function () {
+describe('Language Endpoints', function () {
   let db
 
   const testUsers = helpers.makeUsersArray()
@@ -43,7 +43,7 @@ describe.only('Language Endpoints', function () {
             db,
             testUsers,
             testLanguages,
-            testWords,
+            testWords
           )
         })
 
@@ -75,7 +75,7 @@ describe.only('Language Endpoints', function () {
         db,
         testUsers,
         testLanguages,
-        testWords,
+        testWords
       )
     })
 
@@ -119,7 +119,7 @@ describe.only('Language Endpoints', function () {
         db,
         testUsers,
         testLanguages,
-        testWords,
+        testWords
       )
     })
 
@@ -151,7 +151,7 @@ describe.only('Language Endpoints', function () {
         db,
         testUsers,
         testLanguages,
-        testWords,
+        testWords
       )
     })
 
