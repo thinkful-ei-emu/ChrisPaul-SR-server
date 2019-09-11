@@ -11,26 +11,31 @@ wordRouter
 
 wordRouter
   .post('/', jsonParser, async (req, res, next) => {
-    const { language_id, original, translation } = req.body.word;
-    const newWord = { language_id, original, translation };
-    const word = await WordService.getWord(
-      req.app.get('db'),
-      original,
-      language_id
-    )
-    if(word[0] && word[0].original === original){
-      return res.status(400).json({ error: 'Word already exists' })
+    try{
+      const { language_id, original, translation } = req.body.word;
+      const newWord = { language_id, original, translation };
+      const word = await WordService.getWord(
+        req.app.get('db'),
+        original,
+        language_id
+      )
+      if(word[0] && word[0].original === original){
+        return res.status(400).json({ error: 'Word already exists' })
+      }
+      let lastWord = await WordService.getLastWord(req.app.get('db'), language_id);
+      let result = await WordService.addWord(req.app.get('db'), newWord);
+      let newNext = { next: result.id };
+      let lang = await LanguageService.getLanguage(req.app.get('db'), language_id);
+      if(lang.head === null){
+        let newHead = { head: result.id };
+        await LanguageService.updateLang(req.app.get('db'), lang.id, newHead);
+      }
+      await WordService.updateWord(req.app.get('db'), lastWord[0].id, newNext)
+      res.json(WordService.serializeWord(result));
     }
-    let lastWord = await WordService.getLastWord(req.app.get('db'), language_id);
-    let result = await WordService.addWord(req.app.get('db'), newWord);
-    let newNext = { next: result.id };
-    let lang = await LanguageService.getLanguage(req.app.get('db'), language_id);
-    if(lang.head === null){
-      let newHead = { head: result.id };
-      await LanguageService.updateLang(req.app.get('db'), theLanguage.id, newHead);
+    catch(e){
+      next(e)
     }
-    await WordService.updateWord(req.app.get('db'), lastWord[0].id, newNext)
-    res.json(WordService.serializeWord(result));
   });
 
 wordRouter
@@ -40,16 +45,35 @@ wordRouter
     let currWord = await WordService.getWordByID(req.app.get('db'), word_id);
     let userLangs = await LanguageService.getUsersLanguages(req.app.get('db'), req.user.id)
     let lang = userLangs.find(e => e.id === currWord[0].language_id)
-    if(lang && lang.user_id !== req.user.id){
+    try{
+    if(!lang) {
+      return res.status(400).json({ error: `Language doesn't exist`})
+    }
+    if(lang.user_id !== req.user.id){
       return res.status(401).json({ error: 'Unauthorized request' })
     }
+    console.log(lang.head, word_id)
+    if(lang.head === currWord[0].id){
+      const newLang={ head:currWord[0].next }
+      await LanguageService.updateLang(
+        req.app.get('db'),
+        lang.id,
+        newLang
+      )
+    }
     let newNext = { next: currWord[0].next }
+    if(prevWord[0]){
     await WordService.updateWord(req.app.get('db'), prevWord[0].id, newNext)
+    }
     await WordService.deleteWord(
       req.app.get('db'),
       word_id
     )
     res.status(204).end();
+    }
+    catch(e) {
+      next(e)
+    }
   });
 
 module.exports = wordRouter;
