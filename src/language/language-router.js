@@ -83,7 +83,7 @@ languageRouter
       //just in case the language in client is out of sync with server.
       const theLanguage = await LanguageService.getLanguage(
         req.app.get('db'),
-        req.body.language.id
+        req.body.langid
       )
       /* const words = await LanguageService.getLanguageWord(
         req.app.get('db'),
@@ -115,13 +115,13 @@ languageRouter
     const words = await LanguageService.getLanguageWords(
       req.app.get('db'),
       //req.language.id,
-      req.body.language.id
+      req.body.langid
     )
 
     //Just in case server and client are out of sync
     const theLanguage = await LanguageService.getLanguage(
       req.app.get('db'),
-      req.body.language.id
+      req.body.langid
     )
 
     const currWord = await LanguageService.getLanguageWord(
