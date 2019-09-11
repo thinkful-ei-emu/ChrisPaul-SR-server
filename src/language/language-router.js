@@ -74,6 +74,19 @@ languageRouter
     catch (error) {
       next(error);
     }
+  })
+  .delete('/:id',async (req, res, next) => {
+    try{
+      const deleted = await LanguageService.deleteLanguage(
+        req.app.get('db'),
+        req.params.id
+      )
+      res.status(204).json({success:true});
+      next();
+    }
+    catch(error){
+      next(error);
+    }
   });
 
 languageRouter
