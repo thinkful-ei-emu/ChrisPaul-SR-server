@@ -128,10 +128,15 @@ languageRouter
       req.app.get('db'),
       theLanguage.head,
     )
-    const nextWord = await LanguageService.getLanguageWord(
-      req.app.get('db'),
-      currWord[0].next
-    )
+    let nextWord;
+    if(currWord[0].next === null){
+      nextWord = currWord;
+    } else {
+      nextWord = await LanguageService.getLanguageWord(
+        req.app.get('db'),
+        currWord[0].next
+      )
+    }
     const { id, memory_value, correct_count, incorrect_count, translation } = currWord[0];
     let newWord;
     let isCorrect;

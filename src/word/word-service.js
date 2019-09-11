@@ -16,6 +16,51 @@ const WordService = {
       )
       .where({ original, language_id });
   },
+  getWordByID(db, id) {
+    return db
+      .from('word')
+      .select(
+        'id',
+        'language_id',
+        'original',
+        'translation',
+        'next',
+        'memory_value',
+        'correct_count',
+        'incorrect_count'
+      )
+      .where({ id });
+  },
+  getLastWord(db, language_id) {
+    return db
+      .from('word')
+      .select(
+        'id',
+        'language_id',
+        'original',
+        'translation',
+        'next',
+        'memory_value',
+        'correct_count',
+        'incorrect_count'
+      )
+      .where({ language_id, next: null });
+  },
+  getPrevWord(db, next) {
+    return db
+      .from('word')
+      .select(
+        'id',
+        'language_id',
+        'original',
+        'translation',
+        'next',
+        'memory_value',
+        'correct_count',
+        'incorrect_count'
+      )
+      .where({ next });
+  },
   addWord(db, newWord){
     return db('word')
       .insert(newWord)
