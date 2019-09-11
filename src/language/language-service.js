@@ -12,15 +12,38 @@ const LanguageService = {
       .where('language.user_id', user_id)
       .first();
   },
+  getUsersLanguages(db, user_id) {
+    return db
+      .from('language')
+      .select(
+        'language.id',
+        'language.name',
+        'language.user_id',
+        'language.head',
+        'language.total_score'
+      )
+      .where('language.user_id', user_id);
+  },
+  getLanguage(db,id){
+    return db
+      .from('language')
+      .select(
+        'language.id',
+        'language.name',
+        'language.user_id',
+        'language.head',
+        'language.total_score'
+      )
+      .where('language.id', id)
+      .first();
+  },
   addLanguage(db,user_id,name){
     return db
       .insert({
         user_id,
         name
       })
-      .into('language')
-      .returning('*')
-      .then(([lang])=>lang);
+      .into('language');
   },
   getLanguageWords(db, language_id) {
     return db
