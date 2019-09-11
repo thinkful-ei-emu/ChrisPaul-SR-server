@@ -38,6 +38,11 @@ wordRouter
     const { word_id } = req.params;
     let prevWord = await WordService.getPrevWord(req.app.get('db'), word_id)
     let currWord = await WordService.getWordByID(req.app.get('db'), word_id);
+    let userLangs = await LanguageService.getUsersLanguages(req.app.get('db'), req.user.id)
+    let lang = userLangs.find(e => e.id === currWord[0].language_id)
+    if(lang && lang.user_id !== req.user.id){
+      return res.status(401).json({ error: 'Unauthorized request' })
+    }
     let newNext = { next: currWord[0].next }
     await WordService.updateWord(req.app.get('db'), prevWord[0].id, newNext)
     await WordService.deleteWord(
