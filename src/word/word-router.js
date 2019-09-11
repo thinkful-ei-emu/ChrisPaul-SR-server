@@ -8,24 +8,6 @@ const wordRouter = express.Router();
 
 wordRouter
   .use(requireAuth)
-  .use(async (req, res, next) => {
-    try {
-      const language = await LanguageService.getUsersLanguage(
-        req.app.get('db'),
-        req.user.id
-      )
-
-      if (!language)
-        return res.status(404).json({
-          error: `You don't have any languages`,
-        })
-
-      req.language = language
-      next()
-    } catch (error) {
-      next(error)
-    }
-  });
 
 wordRouter
   .post('/', jsonParser, async (req, res, next) => {
