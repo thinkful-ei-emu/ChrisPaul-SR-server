@@ -40,7 +40,7 @@ wordRouter
       res.status(400).json({ error: 'Word already exists' })
     }
     let result = await WordService.addWord(req.app.get('db'), newWord)
-    res.json(result);
+    res.json(WordService.serializeWord(result));
   });
 
 wordRouter
