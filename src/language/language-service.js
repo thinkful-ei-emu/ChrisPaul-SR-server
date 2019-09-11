@@ -45,6 +45,11 @@ const LanguageService = {
       })
       .into('language');
   },
+  deleteLanguage(db,id){
+    return db('language')
+      .where({id})
+      .delete();
+  },
   getLanguageWords(db, language_id) {
     return db
       .from('word')
