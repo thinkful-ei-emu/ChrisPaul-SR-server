@@ -78,12 +78,12 @@ languageRouter
   });
 
 languageRouter
-  .get('/head/:langid', jsonParser, async (req, res, next) => {
+  .get('/head/:langid', async (req, res, next) => {
     try {
       //just in case the language in client is out of sync with server.
       const theLanguage = await LanguageService.getLanguage(
         req.app.get('db'),
-        req.params.id
+        req.params.langid
       )
       /* const words = await LanguageService.getLanguageWord(
         req.app.get('db'),
@@ -138,7 +138,6 @@ languageRouter
     let totalScore;
     let m;
     let newLang;
-    console.log(words);
     try {
       if (req.body.guess === translation) {
         if (memory_value * 2 >= words.length) {
