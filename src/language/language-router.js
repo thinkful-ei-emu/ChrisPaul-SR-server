@@ -115,6 +115,15 @@ function getMthWordId(wordsObj,head,m){
   }
   return head;
 }
+
+function printIds(wordsObj,head){
+  let str=''
+  while(head!==null){
+    str+=head+' --> ';
+    head=wordsObj[head];
+  }
+  console.log(str);
+}
 languageRouter
   .post('/guess/:langid', jsonParser, async (req, res, next) => {
     if (!req.body.guess) {
@@ -133,24 +142,11 @@ languageRouter
       req.app.get('db'),
       req.params.langid
     )
-    printIds(wordsObj,theLanguage.head);
+    //printIds(wordsObj,theLanguage.head);
 
     let currWord = await LanguageService.getLanguageWord(
       req.app.get('db'),
       theLanguage.head,
-<<<<<<< HEAD
-    )
-    let nextWord;
-    if(currWord[0].next === null){
-      nextWord = currWord;
-    } else {
-      nextWord = await LanguageService.getLanguageWord(
-        req.app.get('db'),
-        currWord[0].next
-      )
-    }
-    const { id, memory_value, correct_count, incorrect_count, translation } = currWord[0];
-=======
     );
     let nextWord = await LanguageService.getLanguageWord(
       req.app.get('db'),
@@ -160,7 +156,6 @@ languageRouter
     nextWord=nextWord[0];
     /* const { id, memory_value, correct_count, incorrect_count, translation } = currWord; */
     const {memory_value, translation} = currWord;
->>>>>>> llfix
     let newWord;
     let isCorrect;
     let totalScore=theLanguage.total_score;
@@ -191,17 +186,16 @@ languageRouter
       )
 
       const idOfNodeInNewSpot=getMthWordId(wordsObj,theLanguage.head,m);
-      console.log(idOfNodeInNewSpot)
+      //console.log(idOfNodeInNewSpot)
       currWord.next=wordsObj[idOfNodeInNewSpot];
       currWord.memory_value=m;
       delete currWord['total_score'];
-      //Note wordsObj[id] gives me back the next of node with id
       await LanguageService.updateWord(req.app.get('db'), currWord.id, currWord)
       await LanguageService.updateWord(req.app.get('db'), idOfNodeInNewSpot, {next:currWord.id})
 
       
-
-      const words2 = await LanguageService.getLanguageWords(
+      //for manual testing
+      /* const words2 = await LanguageService.getLanguageWords(
         req.app.get('db'),
         //req.language.id,
         req.params.langid
@@ -214,7 +208,7 @@ languageRouter
         req.app.get('db'),
         req.params.langid
       )
-      printIds(wordsObj2,theLanguage2.head);
+      printIds(wordsObj2,theLanguage2.head); */
       res.json({
         answer: currWord.translation,
         isCorrect,
