@@ -78,12 +78,12 @@ languageRouter
   });
 
 languageRouter
-  .get('/head', jsonParser, async (req, res, next) => {
+  .get('/head/:langid', jsonParser, async (req, res, next) => {
     try {
       //just in case the language in client is out of sync with server.
       const theLanguage = await LanguageService.getLanguage(
         req.app.get('db'),
-        req.body.langid
+        req.params.id
       )
       /* const words = await LanguageService.getLanguageWord(
         req.app.get('db'),
@@ -108,20 +108,20 @@ languageRouter
   })
 
 languageRouter
-  .post('/guess', jsonParser, async (req, res, next) => {
+  .post('/guess/:langid', jsonParser, async (req, res, next) => {
     if (!req.body.guess) {
       return res.status(400).json({ error: `Missing 'guess' in request body` })
     }
     const words = await LanguageService.getLanguageWords(
       req.app.get('db'),
       //req.language.id,
-      req.body.langid
+      req.params.langid
     )
 
     //Just in case server and client are out of sync
     const theLanguage = await LanguageService.getLanguage(
       req.app.get('db'),
-      req.body.langid
+      req.params.langid
     )
 
     const currWord = await LanguageService.getLanguageWord(
