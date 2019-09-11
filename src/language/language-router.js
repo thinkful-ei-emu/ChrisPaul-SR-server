@@ -13,13 +13,18 @@ languageRouter
         req.app.get('db'),
         req.user.id
       )
+      const languages = await LanguageService.getUsersLanguages(
+        req.app.get('db'),
+        req.user.id
+      )
 
       if (!language)
         return res.status(404).json({
           error: `You don't have any languages`,
         })
 
-      req.language = language
+      req.language = language;
+      req.languages = languages;
       next()
     } catch (error) {
       next(error)
@@ -33,9 +38,21 @@ languageRouter
         req.app.get('db'),
         req.language.id,
       )
+      const allWords = {};
+      req.languages.forEach(language => {
+        const wordsForLang = await LanguageService.getLanguageWords(
+          req.app.get('db'),
+          language.id,
+        );
+        words[language.id] = wordsForLang;
+
+      })
+
 
       res.json({
         language: req.language,
+        languages: req.languages,
+        allWords: allWords,
         words,
       })
       next()
@@ -43,39 +60,72 @@ languageRouter
       next(error)
     }
   })
+  .post('/', jsonParser, async (req, res, next) => {
+    try {
+      const posted = await LanguageService.addLanguage(
+        req.app.get('db'),
+        req.user.id,
+        req.body.name
+      )
+      console.log(posted);
+      res.status(201).json(posted);
+      next();
+    }
+    catch (error) {
+      next(error);
+    }
+  });
 
 languageRouter
   .get('/head', jsonParser, async (req, res, next) => {
-    try{
-    const words = await LanguageService.getLanguageWord(
-      req.app.get('db'),
-      req.language.head
-    )
-    const word = {
-      nextWord: words[0].original,
-      totalScore: words[0].total_score,
-      wordCorrectCount: words[0].correct_count,
-      wordIncorrectCount: words[0].incorrect_count
-    };
-    res.json(word)
-    next()
-  } catch (error) {
-    next(error)
-  }
+    try {
+      //just in case the language in client is out of sync with server.
+      const theLanguage = await LanguageService.getLanguage(
+        req.app.get('db'),
+        req.body.language.id
+      )
+      /* const words = await LanguageService.getLanguageWord(
+        req.app.get('db'),
+        req.language.head
+      ) */
+      const words = await LanguageService.getLanguageWord(
+        req.app.get('db'),
+        //req.language.id,
+        theLanguage.head
+      )
+      const word = {
+        nextWord: words[0].original,
+        totalScore: words[0].total_score,
+        wordCorrectCount: words[0].correct_count,
+        wordIncorrectCount: words[0].incorrect_count
+      };
+      res.json(word)
+      next()
+    } catch (error) {
+      next(error)
+    }
   })
 
 languageRouter
   .post('/guess', jsonParser, async (req, res, next) => {
-    if(!req.body.guess){
+    if (!req.body.guess) {
       return res.status(400).json({ error: `Missing 'guess' in request body` })
     }
     const words = await LanguageService.getLanguageWords(
       req.app.get('db'),
-      req.language.id,
+      //req.language.id,
+      req.body.language.id
     )
+
+    //Just in case server and client are out of sync
+    const theLanguage = await LanguageService.getLanguage(
+      req.app.get('db'),
+      req.body.language.id
+    )
+
     const currWord = await LanguageService.getLanguageWord(
       req.app.get('db'),
-      req.language.head,
+      theLanguage.head,
     )
     const nextWord = await LanguageService.getLanguageWord(
       req.app.get('db'),
@@ -88,21 +138,21 @@ languageRouter
     let m;
     let newLang;
     console.log(words);
-    try{
-      if (req.body.guess === translation){
-        if(memory_value*2 >= words.length){
+    try {
+      if (req.body.guess === translation) {
+        if (memory_value * 2 >= words.length) {
           m = words.length - 1;
         } else {
-          m = memory_value*2
+          m = memory_value * 2
         }
-        
-        newWord = { next: words[m].next, memory_value: memory_value*2, correct_count: correct_count+1, incorrect_count }
+
+        newWord = { next: words[m].next, memory_value: memory_value * 2, correct_count: correct_count + 1, incorrect_count }
         prevWord = { next: id }
-        newLang = { head: nextWord[0].id, total_score: req.language.total_score+1 }
+        newLang = { head: nextWord[0].id, total_score: theLanguage.total_score + 1 }
         isCorrect = true;
-        totalScore = nextWord[0].total_score+1;
+        totalScore = nextWord[0].total_score + 1;
       } else {
-        newWord = { next: words[1].next, memory_value: 1, correct_count, incorrect_count: incorrect_count+1 }
+        newWord = { next: words[1].next, memory_value: 1, correct_count, incorrect_count: incorrect_count + 1 }
         prevWord = { next: id }
         newLang = { head: nextWord[0].id }
         isCorrect = false;
@@ -111,10 +161,10 @@ languageRouter
       }
       await LanguageService.updateWord(req.app.get('db'), id, newWord)
       await LanguageService.updateWord(req.app.get('db'), words[m].id, prevWord)
-      
+
       await LanguageService.updateLang(
         req.app.get('db'),
-        req.language.id,
+        theLanguage.id,
         newLang
       )
       res.json({
@@ -126,7 +176,7 @@ languageRouter
         wordIncorrectCount: nextWord[0].incorrect_count
       })
       next()
-    } 
+    }
     catch (error) {
       next(error)
     }
