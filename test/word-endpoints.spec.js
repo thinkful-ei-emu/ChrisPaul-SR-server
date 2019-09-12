@@ -2,7 +2,7 @@
 const app = require('../src/app');
 const helpers = require('./test-helpers');
 
-describe.only('Word Endpoints', function () {
+describe('Word Endpoints', function () {
   let db;
 
   const testUsers = helpers.makeUsersArray();
