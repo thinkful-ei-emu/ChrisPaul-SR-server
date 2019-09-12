@@ -43,7 +43,9 @@ const LanguageService = {
         user_id,
         name
       })
-      .into('language');
+      .into('language')
+      .returning('*')
+      .then(res => res[0]);
   },
   deleteLanguage(db,id){
     return db('language')

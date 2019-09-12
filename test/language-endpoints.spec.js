@@ -278,4 +278,54 @@ describe('Language Endpoints', function () {
       })
     })
   })
+
+  describe(`POST /api/language/`, () => {
+    const [testLanguage] = testLanguages
+    const testLanguagesWords = testWords.filter(
+      w => w.language_id === testLanguage.id
+    )
+
+    beforeEach('insert users, languages and words', () => {
+      return helpers.seedUsersLanguagesWords(
+        db,
+        testUsers,
+        testLanguages,
+        testWords
+      )
+    })
+    it(`responds with 400 required error when 'name' is missing`, () => {
+      const postBody = {
+        randomField: 'test random field',
+      }
+
+      return supertest(app)
+        .post(`/api/language/`)
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .send(postBody)
+        .expect(400, {
+          error: `Missing 'name' in request body`,
+        })
+    })
+
+    it(`creates a language with name, check if it was actually created using get /api/language`, ()=>{
+      const postBody = {
+        name: 'spanish',
+      }
+      return supertest(app)
+        .post(`/api/language`)
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .send(postBody)
+        .expect(201)
+        .then(postedres=>{
+          return supertest(app)
+            .get('/api/language')
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .expect(res=>{
+              expect(res.body.languages.find(element=>element.id===postedres.body.id)).to.be.eql(postedres.body);
+            })
+        })
+    })
+
+
+  });
 })

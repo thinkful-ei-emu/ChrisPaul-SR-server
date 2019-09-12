@@ -63,6 +63,9 @@ languageRouter
   })
   .post('/', jsonParser, async (req, res, next) => {
     try {
+      if(!req.body.name){
+        return res.status(400).json({error:`Missing 'name' in request body`})
+      }
       const posted = await LanguageService.addLanguage(
         req.app.get('db'),
         req.user.id,
