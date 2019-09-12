@@ -150,6 +150,19 @@ function seedUsers(db, users) {
   })
 }
 
+async function seedUsersLanguages(db, users, languages){
+  await seedUsers(db, users)
+  await db.transaction(async trx => {
+    await trx.into('language').insert(languages)
+
+    await Promise.all([
+      trx.raw(
+        `SELECT setval('language_id_seq', ?)`,
+        [languages[languages.length - 1].id],
+      )
+    ])
+  })
+}
 /**
  * seed the databases with words and update sequence counter
  * @param {knex instance} db
@@ -194,4 +207,5 @@ module.exports = {
   cleanTables,
   seedUsers,
   seedUsersLanguagesWords,
+  seedUsersLanguages
 }

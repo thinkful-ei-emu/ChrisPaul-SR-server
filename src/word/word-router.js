@@ -13,10 +13,12 @@ wordRouter
   .post('/', jsonParser, async (req, res, next) => {
     try{
       const { language_id, original, translation } = req.body.word;
-      if(!language_id || !original || !translation){
-        return res.status(400).json({ error: 'You must provide a language, original word and translated word' })
-      }
       const newWord = { language_id, original, translation };
+      for(let [key, value] of Object.entries(newWord)){
+        if(!value){
+          return res.status(400).json({ error: `You must provide a ${key}` })
+        }
+      }
       const word = await WordService.getWord(
         req.app.get('db'),
         original,
@@ -46,18 +48,20 @@ wordRouter
 wordRouter
   .delete('/:word_id', async (req, res, next) => {
     const { word_id } = req.params;
+    try{
     let prevWord = await WordService.getPrevWord(req.app.get('db'), word_id)
     let currWord = await WordService.getWordByID(req.app.get('db'), word_id);
     let userLangs = await LanguageService.getUsersLanguages(req.app.get('db'), req.user.id)
+    if(!currWord[0]){
+      return res.status(400).json({ error: `Word is already deleted`})
+    }
     let lang = userLangs.find(e => e.id === currWord[0].language_id)
-    try{
     if(!lang) {
       return res.status(400).json({ error: `Language doesn't exist`})
     }
     if(lang.user_id !== req.user.id){
       return res.status(401).json({ error: 'Unauthorized request' })
     }
-    console.log(lang.head, word_id)
     if(lang.head === currWord[0].id){
       const newLang={ head:currWord[0].next }
       await LanguageService.updateLang(
