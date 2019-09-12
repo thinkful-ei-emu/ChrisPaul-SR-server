@@ -110,7 +110,7 @@ describe('Language Endpoints', function () {
   /**
    * @description Get head from language
    **/
-  describe(`GET /api/language/head`, () => {
+  describe(`GET /api/language/head/:langid`, () => {
     const usersLanguage = testLanguages.find(l => l.user_id === testUser.id)
     const headWord = testWords.find(w => w.language_id === usersLanguage.id)
 
@@ -125,7 +125,7 @@ describe('Language Endpoints', function () {
 
     it(`responds with 200 and user's languages`, () => {
       return supertest(app)
-        .get(`/api/language/head`)
+        .get(`/api/language/head/${testLanguages[0].id}`)
         .set('Authorization', helpers.makeAuthHeader(testUser))
         .expect(200)
         .expect({
@@ -140,7 +140,7 @@ describe('Language Endpoints', function () {
   /**
    * @description Submit a new guess for the language
    **/
-  describe(`POST /api/language/guess`, () => {
+  describe(`POST /api/language/guess/:langid`, () => {
     const [testLanguage] = testLanguages
     const testLanguagesWords = testWords.filter(
       w => w.language_id === testLanguage.id
@@ -161,7 +161,7 @@ describe('Language Endpoints', function () {
       }
 
       return supertest(app)
-        .post(`/api/language/guess`)
+        .post(`/api/language/guess/${testLanguages[0].id}`)
         .set('Authorization', helpers.makeAuthHeader(testUser))
         .send(postBody)
         .expect(400, {
@@ -176,7 +176,7 @@ describe('Language Endpoints', function () {
 
       it(`responds with incorrect and moves head`, () => {
         return supertest(app)
-          .post(`/api/language/guess`)
+          .post(`/api/language/guess/${testLanguages[0].id}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .send(incorrectPostBody)
           .expect(200)
@@ -192,12 +192,12 @@ describe('Language Endpoints', function () {
 
       it(`moves the word 1 space and updates incorrect count`, async () => {
         await supertest(app)
-          .post(`/api/language/guess`)
+          .post(`/api/language/guess/${testLanguages[0].id}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .send(incorrectPostBody)
 
         await supertest(app)
-          .post(`/api/language/guess`)
+          .post(`/api/language/guess/${testLanguages[0].id}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .send(incorrectPostBody)
           .expect({
@@ -221,7 +221,7 @@ describe('Language Endpoints', function () {
           guess: testLanguagesWords[0].translation,
         }
         return supertest(app)
-          .post(`/api/language/guess`)
+          .post(`/api/language/guess/${testLanguages[0].id}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .send(correctPostBody)
           .expect(200)
@@ -240,7 +240,7 @@ describe('Language Endpoints', function () {
           guess: testLanguagesWords[0].translation,
         }
         await supertest(app)
-          .post(`/api/language/guess`)
+          .post(`/api/language/guess/${testLanguages[0].id}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .send(correctPostBody)
 
@@ -248,7 +248,7 @@ describe('Language Endpoints', function () {
           guess: testLanguagesWords[1].translation,
         }
         await supertest(app)
-          .post(`/api/language/guess`)
+          .post(`/api/language/guess/${testLanguages[0].id}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .send(correctPostBody)
           .expect({
@@ -264,7 +264,7 @@ describe('Language Endpoints', function () {
           guess: testLanguagesWords[2].translation,
         }
         await supertest(app)
-          .post(`/api/language/guess`)
+          .post(`/api/language/guess/${testLanguages[0].id}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .send(correctPostBody)
           .expect({
