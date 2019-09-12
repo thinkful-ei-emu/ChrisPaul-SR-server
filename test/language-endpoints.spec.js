@@ -328,4 +328,40 @@ describe('Language Endpoints', function () {
 
 
   });
+  describe(`DELETE /api/language/`, () => {
+    const [testLanguage] = testLanguages
+    const testLanguagesWords = testWords.filter(
+      w => w.language_id === testLanguage.id
+    )
+
+    beforeEach('insert users, languages and words', () => {
+      return helpers.seedUsersLanguagesWords(
+        db,
+        testUsers,
+        testLanguages,
+        testWords
+      )
+    })
+    it(`deletes responds with 201, checks it is really gone using GET /api/language, and getting You don't have any languages response`, () => {
+      const postBody = {
+        randomField: 'test random field',
+      }
+      let id=testLanguages[0].id;
+      return supertest(app)
+        .delete(`/api/language/${testLanguages[0].id}`)
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .send(postBody)
+        .expect(204)
+        .then(()=>{
+          return supertest(app)
+            .get('/api/language')
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .expect(404, {error:`You don't have any languages`});
+            /* .expect(res=>{
+              expect(res.body)
+              expect(res.body.languages.find(element=>element.id===id)).to.be.eql(undefined); 
+            }) */
+        })
+    })
+  })
 })

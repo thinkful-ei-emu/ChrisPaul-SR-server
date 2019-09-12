@@ -1,9 +1,9 @@
-const express = require('express')
-const LanguageService = require('./language-service')
-const { requireAuth } = require('../middleware/jwt-auth')
-const jsonParser = express.json()
+const express = require('express');
+const LanguageService = require('./language-service');
+const { requireAuth } = require('../middleware/jwt-auth');
+const jsonParser = express.json();
 
-const languageRouter = express.Router()
+const languageRouter = express.Router();
 
 languageRouter
   .use(requireAuth)
@@ -46,15 +46,15 @@ languageRouter
           req.app.get('db'),
           req.languages[i].id,
         );
-        allWords[req.languages[i].id]=wordsForLang;
+        allWords[req.languages[i].id]=wordsForLang.map(word=>LanguageService.serializeWord(word));
       }
 
 
       res.json({
-        language: req.language,
-        languages: req.languages,
+        language: LanguageService.serializeLanguage(req.language),
+        languages: req.languages.map(lang=>LanguageService.serializeLanguage(lang)),
         allWords: allWords,
-        words,
+        words:words.map(word=>LanguageService.serializeWord(word)),
       })
       next()
     } catch (error) {
@@ -71,7 +71,7 @@ languageRouter
         req.user.id,
         req.body.name
       )
-      res.status(201).json(posted);
+      res.status(201).json(LanguageService.serializeLanguage(posted));
       next();
     }
     catch (error) {
@@ -80,6 +80,13 @@ languageRouter
   })
   .delete('/:id',async (req, res, next) => {
     try{
+      const theLanguage = await LanguageService.getLanguage(
+        req.app.get('db'),
+        req.params.id
+      )
+      if(theLanguage.user_id!==req.user.id){
+        return res.status(404);
+      }
       const deleted = await LanguageService.deleteLanguage(
         req.app.get('db'),
         req.params.id
@@ -100,24 +107,28 @@ languageRouter
         req.app.get('db'),
         req.params.langid
       )
+      if(theLanguage.user_id!==req.user.id){
+        return res.status(404);
+      }
       /* const words = await LanguageService.getLanguageWord(
         req.app.get('db'),
         req.language.head
       ) */
-      console.log(theLanguage);
       if(theLanguage.head===null){
         return res.status(404).json({ error:'The head is null'});
       }
-      const words = await LanguageService.getLanguageWord(
+      let words = await LanguageService.getLanguageWord(
         req.app.get('db'),
         //req.language.id,
         theLanguage.head
       )
+      words=words[0];
+      words=LanguageService.serializeWord(words);
       const word = {
-        nextWord: words[0].original,
-        totalScore: words[0].total_score,
-        wordCorrectCount: words[0].correct_count,
-        wordIncorrectCount: words[0].incorrect_count
+        nextWord: words.original,
+        totalScore: words.total_score,
+        wordCorrectCount: words.correct_count,
+        wordIncorrectCount: words.incorrect_count
       };
       res.json(word)
       next()
@@ -147,6 +158,13 @@ languageRouter
     if (!req.body.guess) {
       return res.status(400).json({ error: `Missing 'guess' in request body` })
     }
+    const theLanguage = await LanguageService.getLanguage(
+      req.app.get('db'),
+      req.params.langid
+    )
+    if(theLanguage.user_id!==req.user.id){
+      return res.status(404);
+    }
     const words = await LanguageService.getLanguageWords(
       req.app.get('db'),
       //req.language.id,
@@ -159,23 +177,22 @@ languageRouter
     words.forEach(word=>{
       wordsObj[word.id]=word.next;
     });
-    const theLanguage = await LanguageService.getLanguage(
-      req.app.get('db'),
-      req.params.langid
-    )
+    
     //printIds(wordsObj,theLanguage.head);
 
     let currWord = await LanguageService.getLanguageWord(
       req.app.get('db'),
       theLanguage.head,
     );
+
     let nextWord = (words.length!==1)?await LanguageService.getLanguageWord(
       req.app.get('db'),
       currWord[0].next
-    ):
-    currWord[0];
-    currWord=currWord[0];
-    nextWord=nextWord[0];
+    ) : null;
+
+    currWord=LanguageService.serializeWord(currWord[0]);
+    if(nextWord)
+      nextWord=LanguageService.serializeWord(nextWord[0]);
     /* const { id, memory_value, correct_count, incorrect_count, translation } = currWord; */
     const {memory_value, translation, correct_count,incorrect_count} = currWord;
     let newWord={};
@@ -209,9 +226,6 @@ languageRouter
         newWord.next=null;
         newWord.memory_value=1;
         await LanguageService.updateWord(req.app.get('db'), currWord.id, newWord)
-        if(words.length!==1){
-          await LanguageService.updateWord(req.app.get('db'), idOfNodeInNewSpot, {next:currWord.id})
-        }
         res.json({
           answer: currWord.translation,
           isCorrect,

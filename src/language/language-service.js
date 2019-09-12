@@ -1,3 +1,4 @@
+const xss = require('xss');
 const LanguageService = {
   getUsersLanguage(db, user_id) {
     return db
@@ -100,7 +101,32 @@ const LanguageService = {
       .from('language')
       .where({ id })
       .update(newLang);
+  },
+  serializeLanguage(lang){
+    return{
+      id:lang.id,
+      name:xss(lang.name),
+      total_score:lang.total_score,
+      user_id:lang.user_id,
+      head:lang.head
+    };
+  },
+  serializeWord(word){
+    let safeWord= {
+      id: word.id,
+      original: xss(word.original),
+      translation: xss(word.translation),
+      memory_value: word.memory_value,
+      incorrect_count: word.incorrect_count,
+      correct_count: word.correct_count,
+      language_id: word.language_id,
+      next: word.next
+    };
+    if(word.total_score!=null)
+      safeWord.total_score=word.total_score;
+    return safeWord;
   }
+
 };
 
 module.exports = LanguageService;
